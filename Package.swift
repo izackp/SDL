@@ -18,7 +18,7 @@ let package = Package(
             dependencies: ["SDL2Swift"]),
         .target(
             name: "SDL2Swift",
-            dependencies: ["SDL2"]),
+            dependencies: ["SDL2", "SDL2_Image", "SDL2_Mixer", "SDL2_TTF"]),
         .systemLibrary(
             name: "SDL2",
             pkgConfig: "sdl2",
@@ -26,6 +26,27 @@ let package = Package(
                 .brew(["sdl2"]),
                 .apt(["libsdl2-dev"])
             ]),
+        .systemLibrary(
+            name: "SDL2_Image",
+            pkgConfig: "sdl2_image",
+            providers: [
+              .brew(["sdl2_image"]),
+              .apt(["libsdl2_image-dev"]) ]
+        ),
+        .systemLibrary(
+            name: "SDL2_Mixer",
+            pkgConfig: "sdl2_mixer",
+            providers: [
+              .brew(["sdl2_mixer"]),
+              .apt(["libsdl2_mixer-dev"]) ]
+        ),
+        .systemLibrary(
+            name: "SDL2_TTF",
+            pkgConfig: "sdl2_ttf",
+            providers: [
+              .brew(["sdl2_ttf"]),
+              .apt(["libsdl2_ttf-dev"]) ]
+        ),
         .testTarget(
             name: "SDLTests",
             dependencies: ["SDL2Swift"]),
