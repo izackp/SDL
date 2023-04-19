@@ -5,10 +5,10 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Pixel Format
-public final class SDLPixelFormat {
+public final class PixelFormat {
     
     // MARK: - Properties
     
@@ -23,7 +23,7 @@ public final class SDLPixelFormat {
     /// Creates a new Pixel Format.
     ///
     /// -Note: Returned structure may come from a shared global cache (i.e. not newly allocated), and hence should not be modified, especially the palette. Weird errors such as `Blit combination not supported` may occur.
-    public init(format: SDLPixelFormat.Format) throws {
+    public init(format: PixelFormat.Format) throws {
         
         let internalFormat = SDL_AllocFormat(format.rawValue)
         self.internalPointer = try internalFormat.sdlThrow(type: type(of: self))
@@ -32,7 +32,7 @@ public final class SDLPixelFormat {
     // MARK: - Accessors
     
     /// Pixel format
-    public var format: SDLPixelFormat.Format {
+    public var format: PixelFormat.Format {
         
         return Format(rawValue: internalPointer.pointee.format)
     }
@@ -40,7 +40,7 @@ public final class SDLPixelFormat {
     // MARK: - Methods
     
     /// Set the palette for a pixel format structure
-    public func setPalette(_ palette: SDLPalette) throws {
+    public func setPalette(_ palette: Palette) throws {
         
         try SDL_SetPixelFormatPalette(internalPointer, palette.internalPointer).sdlThrow(type: type(of: self))
     }
@@ -48,7 +48,7 @@ public final class SDLPixelFormat {
 
 // MARK: - Supporting Types
 
-public extension SDLPixelFormat {
+public extension PixelFormat {
     
     /// SDL Pixel Format Enum
     struct Format: RawRepresentable, Equatable, Hashable {
@@ -62,7 +62,7 @@ public extension SDLPixelFormat {
     }
 }
 
-internal extension SDLPixelFormat.Format {
+internal extension PixelFormat.Format {
     
     /// Get the human readable name of a pixel format
     var formatName: String {
@@ -70,26 +70,26 @@ internal extension SDLPixelFormat.Format {
     }
 }
 
-public extension SDLPixelFormat.Format {
+public extension PixelFormat.Format {
     
     /// SDL_PIXELFORMAT_INDEX1LSB
-    static let index1LSB = SDLPixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_INDEX1LSB.rawValue))
+    static let index1LSB = PixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_INDEX1LSB.rawValue))
     
     /// SDL_PIXELFORMAT_INDEX1MSB
-    static let index1MSB = SDLPixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_INDEX1MSB.rawValue))
+    static let index1MSB = PixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_INDEX1MSB.rawValue))
     
     #if os(macOS)
     /// SDL_PIXELFORMAT_ARGB32
-    static let argb32 = SDLPixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_ARGB32.rawValue))
+    static let argb32 = PixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_ARGB32.rawValue))
     #endif
     
     /// SDL_PIXELFORMAT_ARGB8888
-    static let argb8888 = SDLPixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_ARGB8888.rawValue))
+    static let argb8888 = PixelFormat.Format(rawValue: UInt32(SDL_PIXELFORMAT_ARGB8888.rawValue))
 }
 
 // MARK: - ExpressibleByIntegerLiteral
 
-extension SDLPixelFormat.Format: ExpressibleByIntegerLiteral {
+extension PixelFormat.Format: ExpressibleByIntegerLiteral {
     
     public init(integerLiteral value: UInt32) {
         self.init(rawValue: value)
@@ -98,7 +98,7 @@ extension SDLPixelFormat.Format: ExpressibleByIntegerLiteral {
 
 // MARK: - CustomStringConvertible
 
-extension SDLPixelFormat.Format: CustomStringConvertible {
+extension PixelFormat.Format: CustomStringConvertible {
     
     /// Get the human readable name of a pixel format.
     public var description: String {
@@ -110,7 +110,7 @@ extension SDLPixelFormat.Format: CustomStringConvertible {
 
 // MARK: - CustomStringDebugConvertible
 
-extension SDLPixelFormat.Format: CustomDebugStringConvertible {
+extension PixelFormat.Format: CustomDebugStringConvertible {
     
     public var debugDescription: String {
         

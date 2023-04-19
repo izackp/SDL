@@ -5,10 +5,10 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Window
-public final class SDLWindow {
+public final class Window {
     
     // MARK: - Properties
     
@@ -23,7 +23,7 @@ public final class SDLWindow {
     /// Create a window with the specified position, dimensions, and flags.
     public init(title: String,
                 frame: (x: Position, y: Position, width: Int, height: Int),
-                options: BitMaskOptionSet<SDLWindow.Option> = []) throws {
+                options: BitMaskOptionSet<Window.Option> = []) throws {
         
         let internalPointer = SDL_CreateWindow(title, frame.x.rawValue, frame.y.rawValue, Int32(frame.width), Int32(frame.height), options.rawValue)
         
@@ -38,12 +38,17 @@ public final class SDLWindow {
     }
     
     /// Fill in information about the display mode used when a fullscreen window is visible.
-    public func displayMode() throws -> SDLDisplayMode {
+    public func displayMode() throws -> DisplayMode {
         
         var sdlDisplayMode = SDL_DisplayMode()
         try SDL_GetWindowDisplayMode(internalPointer, &sdlDisplayMode).sdlThrow(type: type(of: self))
-        return SDLDisplayMode(sdlDisplayMode)
+        return DisplayMode(sdlDisplayMode)
     }
+    
+    public func getPtr() -> OpaquePointer {
+        return internalPointer
+    }
+
     
     /// Use this function to get the size of a window's client area (in points).
     public var size: (width: Int, height: Int) {
@@ -57,7 +62,17 @@ public final class SDLWindow {
             return (Int(width), Int(height))
         }
         
-        set { SDL_SetWindowSize(internalPointer, Int32(size.width), Int32(size.height)) }
+        set { SDL_SetWindowSize(internalPointer, Int32(newValue.width), Int32(newValue.height)) }
+    }
+    
+    public var position: (x: Int, y: Int) {
+        get {
+            var x: Int32 = 0
+            var y: Int32 = 0
+            SDL_GetWindowPosition(internalPointer, &x, &y)
+            return (Int(x), Int(y))
+        }
+        set { SDL_SetWindowPosition(internalPointer, Int32(newValue.x), Int32(newValue.y)) }
     }
     
     /// Size of a window's underlying drawable in pixels (for use with glViewport).
@@ -132,7 +147,7 @@ public final class SDLWindow {
 private var SDL_WINDOWPOS_UNDEFINED: CInt { return 0x1FFF0000 }
 private var SDL_WINDOWPOS_CENTERED: CInt { return 0x2FFF0000 }
 
-public extension SDLWindow {
+public extension Window {
         
     enum Position: RawRepresentable {
         
@@ -160,7 +175,7 @@ public extension SDLWindow {
     }
 }
 
-public extension SDLWindow {
+public extension Window {
     
     /// The flags on a window.
     enum Option: UInt32, BitMaskOption {

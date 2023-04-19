@@ -5,10 +5,34 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Texture
-public final class SDLTexture {
+public final class Texture {
+    
+    public enum Access: Int32 {
+        
+        /// Changes rarely, not lockable.
+        case `static`
+        
+        /// Changes frequently, lockable.
+        case streaming
+        
+        /// Texture can be used as a render target
+        case target
+    }
+    
+    /// SDL Texture Attributes
+    public struct Attributes {
+        
+        public let format: PixelFormat.Format
+        
+        public let access: Texture.Access
+        
+        public let width: Int
+        
+        public let height: Int
+    }
     
     // MARK: - Properties
     
@@ -29,7 +53,7 @@ public final class SDLTexture {
     /// - Parameter height: The height of the texture in pixels.
     /// - Returns: The created texture is returned, or `nil` if no rendering context
     /// was active, the format was unsupported, or the width or height were out of range.
-    public init(renderer: SDLRenderer, format: SDLPixelFormat.Format, access: Access, width: Int, height: Int) throws {
+    public init(renderer: Renderer, format: PixelFormat.Format, access: Access, width: Int, height: Int) throws {
         
         let internalPointer = SDL_CreateTexture(renderer.internalPointer,
                                                       format.rawValue,
@@ -44,7 +68,7 @@ public final class SDLTexture {
     /// - Parameter renderer: The renderer.
     /// - Parameter surface: The surface containing pixel data used to fill the texture.
     /// - Returns: The created texture is returned, or `nil` on error.
-    public init(renderer: SDLRenderer, surface: SDLSurface) throws {
+    public init(renderer: Renderer, surface: Surface) throws {
         
         let internalPointer = SDL_CreateTextureFromSurface(renderer.internalPointer, surface.internalPointer)
         self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
@@ -61,22 +85,22 @@ public final class SDLTexture {
         
         try SDL_QueryTexture(internalPointer, &format, &access, &width, &height).sdlThrow(type: type(of: self))
         
-        return Attributes(format: SDLPixelFormat.Format(rawValue: format),
-                          access: SDLTexture.Access(rawValue: access)!,
+        return Attributes(format: PixelFormat.Format(rawValue: format),
+                          access: Texture.Access(rawValue: access)!,
                           width: Int(width),
                           height: Int(height))
     }
     
     /// The blend mode used for texture copy operations.
-    public func blendMode() throws -> BitMaskOptionSet<SDLBlendMode> {
+    public func blendMode() throws -> BitMaskOptionSet<BlendMode> {
         
         var value = SDL_BlendMode(0)
         try SDL_GetTextureBlendMode(internalPointer, &value).sdlThrow(type: type(of: self))
-        return BitMaskOptionSet<SDLBlendMode>(rawValue: value.rawValue)
+        return BitMaskOptionSet<BlendMode>(rawValue: value.rawValue)
     }
     
     /// Set the blend mode used for texture copy operations.
-    public func setBlendMode(_ newValue: BitMaskOptionSet<SDLBlendMode>) throws {
+    public func setBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
         
         try SDL_SetTextureBlendMode(internalPointer, SDL_BlendMode(newValue.rawValue)).sdlThrow(type: type(of: self))
     }
@@ -114,6 +138,16 @@ public final class SDLTexture {
         
         try SDL_SetTextureAlphaMod(internalPointer, alpha).sdlThrow(type: type(of: self))
     }
+    
+    public func setColorModulation(_ color: Color) throws {
+        let format = try PixelFormat.init(format: .argb8888)
+        let (r, g, b, _) = color.components(for: format)
+        try SDL_SetTextureColorMod(internalPointer, r, g, b).sdlThrow(type: type(of: self))
+    }
+    
+    public func setColorModulation(_ r: UInt8, _ g: UInt8, _ b: UInt8) throws {
+        try SDL_SetTextureColorMod(internalPointer, r, g, b).sdlThrow(type: type(of: self))
+    }
 
     
     // MARK: - Methods
@@ -125,17 +159,14 @@ public final class SDLTexture {
     ///     - body: The closure is called with the pixel pointer and pitch.
     ///     - pointer: The pixel pointer.
     ///     - pitch: The pitch.
-    public func update(for rect: SDL_Rect? = nil, pixels: UnsafeMutableRawPointer, pitch: Int) throws {
-        let rectPointer: UnsafeMutablePointer<SDL_Rect>?
+    public func update(for rect: SDL_Rect? = nil, pixels: UnsafeRawBufferPointer, pitch: Int) throws {
         if let rect = rect {
-            rectPointer = UnsafeMutablePointer.allocate(capacity: 1)
-            rectPointer?.pointee = rect
+            try withUnsafePointer(to: rect) { (idk:UnsafePointer<SDL_Rect>) in
+                try SDL_UpdateTexture(internalPointer, idk, pixels.baseAddress, Int32(pitch)).sdlThrow(type: type(of: self))
+            }
         } else {
-            rectPointer = nil
+            try SDL_UpdateTexture(internalPointer, nil, pixels.baseAddress, Int32(pitch)).sdlThrow(type: type(of: self))
         }
-        defer { rectPointer?.deallocate() }
-    
-        try SDL_UpdateTexture(internalPointer, rectPointer, pixels, Int32(pitch)).sdlThrow(type: type(of: self))
     }
     
     /// Lock a portion of the texture for write-only pixel access (only valid for streaming textures).
@@ -149,22 +180,16 @@ public final class SDLTexture {
     public func withUnsafeMutableBytes<Result>(for rect: SDL_Rect? = nil, _ body: (_ pointer: UnsafeMutableRawPointer, _ pitch: Int) throws -> Result) throws -> Result? {
         
         let rectPointer: UnsafeMutablePointer<SDL_Rect>?
-        
-        if var rect = rect {
-            
+        if let rect = rect {
             rectPointer = UnsafeMutablePointer.allocate(capacity: 1)
-            
             rectPointer?.pointee = rect
-            
         } else {
-            
             rectPointer = nil
         }
         
         defer { rectPointer?.deallocate() }
         
         var pitch: Int32 = 0
-        
         var pixels: UnsafeMutableRawPointer? = nil
         
         /// must be SDL_TEXTUREACCESS_STREAMING or throws
@@ -179,34 +204,28 @@ public final class SDLTexture {
         
         return result
     }
-}
-
-public extension SDLTexture {
     
-    enum Access: Int32 {
+    //NOTE: Must write into entire rect or risk uninitialized memory
+    func lockAndEditSurface(rect: SDL_Rect? = nil, _ body: (Surface) throws ->()) throws {
+        let rectPointer: UnsafeMutablePointer<SDL_Rect>?
+        if let rect = rect {
+            rectPointer = UnsafeMutablePointer.allocate(capacity: 1)
+            rectPointer?.pointee = rect
+        } else {
+            rectPointer = nil
+        }
         
-        /// Changes rarely, not lockable.
-        case `static`
+        let surface = UnsafeMutablePointer<UnsafeMutablePointer<SDL_Surface>?>.allocate(capacity: 1)
         
-        /// Changes frequently, lockable.
-        case streaming
-        
-        /// Texture can be used as a render target
-        case target
-    }
-}
-
-public extension SDLTexture {
-    
-    /// SDL Texture Attributes
-    struct Attributes {
-        
-        public let format: SDLPixelFormat.Format
-        
-        public let access: SDLTexture.Access
-        
-        public let width: Int
-        
-        public let height: Int
+        defer {
+            rectPointer?.deallocate()
+            surface.deallocate()
+        }
+        try SDL_LockTextureToSurface(internalPointer, rectPointer, surface).sdlThrow(type: type(of: self))
+        if let finalSurfacePtr = surface.pointee {
+            let wrapped = Surface(ptr: finalSurfacePtr, skipFree: true)
+            try body(wrapped)
+        }
+        SDL_UnlockTexture(internalPointer)
     }
 }

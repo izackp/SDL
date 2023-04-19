@@ -5,10 +5,10 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Pallette
-public final class SDLPalette {
+public final class Palette {
     
     // MARK: - Properties
     

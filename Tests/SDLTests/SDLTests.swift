@@ -1,5 +1,5 @@
 import XCTest
-@testable import SDL
+@testable import SDL2Swift
 
 class SDLTests: XCTestCase {
     

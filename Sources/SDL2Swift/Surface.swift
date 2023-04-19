@@ -5,19 +5,35 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
+
+extension SDL_Rect {
+    func allocMutablePointer() -> UnsafeMutablePointer<SDL_Rect> {
+        let result = UnsafeMutablePointer<SDL_Rect>.allocate(capacity: 1)
+        result.pointee = self
+        return result
+    }
+    
+    //TODO: this works... but not safe. Tried the immutable varient and get varying results once out of scope of calling function
+    mutating func toMutPointer() -> UnsafeMutablePointer<SDL_Rect> {
+        return withUnsafeMutablePointer(to: &self, { $0 })
+    }
+}
 
 /// SDL Surface
-public final class SDLSurface {
+public final class Surface {
     
     // MARK: - Properties
     
     internal let internalPointer: UnsafeMutablePointer<SDL_Surface>
+    internal let _skipFree:Bool
     
     // MARK: - Initialization
     
     deinit {
-        SDL_FreeSurface(internalPointer)
+        if (!_skipFree) {
+            SDL_FreeSurface(internalPointer)
+        }
     }
     
     /// Create an RGB surface.
@@ -28,6 +44,7 @@ public final class SDLSurface {
         let internalPointer = SDL_CreateRGBSurface(0, CInt(size.width), CInt(size.height), CInt(depth), CUnsignedInt(mask.red), CUnsignedInt(mask.green), CUnsignedInt(mask.blue), CUnsignedInt(mask.alpha))
         
         self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
+        _skipFree = false
     }
     
     // Get the SDL surface associated with the window.
@@ -36,10 +53,23 @@ public final class SDLSurface {
     /// if necessary. This surface will be freed when the window is destroyed.
     /// - Returns: The window's framebuffer surface, or `nil` on error.
     /// - Note: You may not combine this with 3D or the rendering API on this window.
-    public init(window: SDLWindow) throws {
+    public init(window: Window) throws {
         
         let internalPointer = SDL_GetWindowSurface(window.internalPointer)
         self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
+        _skipFree = false
+    }
+    
+    public init(ptr: UnsafeMutablePointer<SDL_Surface>, skipFree:Bool = false) {
+        self.internalPointer = ptr
+        _skipFree = skipFree
+    }
+    
+    public init(bmpDataPtr:UnsafeMutableRawBufferPointer) throws {
+        let rwops = SDL_RWFromMem(bmpDataPtr.baseAddress, Int32(bmpDataPtr.count))
+        let internalPointer = SDL_LoadBMP_RW(rwops, 0)
+        self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
+        _skipFree = false
     }
     
     // MARK: - Accessors
@@ -109,21 +139,41 @@ public final class SDLSurface {
         SDL_UnlockSurface(internalPointer)
     }
     
-    public func blit(to surface: SDLSurface, source: SDL_Rect? = nil, destination: SDL_Rect? = nil) throws {
-        
-        // TODO rects
-        try SDL_UpperBlit(internalPointer, nil, surface.internalPointer, nil).sdlThrow(type: type(of: self))
-    }
-    
-    public func fill(rect: SDL_Rect? = nil, color: SDLColor) throws {
-        
-        let rectPointer: UnsafePointer<SDL_Rect>?
-        if let rect = rect {
-            rectPointer = withUnsafePointer(to: rect) { $0 }
-        } else {
-            rectPointer = nil
+    public func blit(to surface: Surface, source: SDL_Rect? = nil, destination: SDL_Rect? = nil) throws {
+        let dest = destination?.allocMutablePointer()
+        defer {
+            dest?.deallocate()
         }
         
-        try SDL_FillRect(internalPointer, rectPointer, color.rawValue).sdlThrow(type: type(of: self))
+        
+        if let source = source {
+            try withUnsafePointer(to: source) { (idk:UnsafePointer<SDL_Rect>) in
+                let result = SDL_UpperBlit(internalPointer, idk, surface.internalPointer, dest)
+                try result.sdlThrow(type: type(of: self))
+            }
+        } else {
+            let result = SDL_UpperBlit(internalPointer, nil, surface.internalPointer, dest)
+            try result.sdlThrow(type: type(of: self))
+        }
+        
+    }
+    
+    public func fill(rect: SDL_Rect? = nil, color: Color) throws {
+        if let rect = rect {
+            try withUnsafePointer(to: rect) { (idk:UnsafePointer<SDL_Rect>) in
+                try SDL_FillRect(internalPointer, idk, color.rawValue).sdlThrow(type: type(of: self))
+            }
+        } else {
+            try SDL_FillRect(internalPointer, nil, color.rawValue).sdlThrow(type: type(of: self))
+        }
+    }
+    
+    public func drawPoint(_ x: Int32, _ y:Int32, _ color: UInt32) throws {
+        //SDL_DrawPoint(internalPointer, x, y, color)
+    }
+    
+    public func convertSurface(format: SDL_PixelFormatEnum) throws -> Surface {
+        let newPtr = try SDL_ConvertSurfaceFormat(internalPointer, format.rawValue, 0).sdlThrow(type: type(of: self))
+        return Surface(ptr: newPtr)
     }
 }

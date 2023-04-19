@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "SDL",
+    name: "SDL2Swift",
     products: [
         .library(
-            name: "SDL",
-            targets: ["SDL"]),
+            name: "SDL2Swift",
+            targets: ["SDL2Swift"]),
         .executable(
             name: "SDLDemo",
             targets: ["SDLDemo"]),
@@ -15,12 +15,12 @@ let package = Package(
     targets: [
         .target(
             name: "SDLDemo",
-            dependencies: ["SDL"]),
+            dependencies: ["SDL2Swift"]),
         .target(
-            name: "SDL",
-            dependencies: ["CSDL2"]),
+            name: "SDL2Swift",
+            dependencies: ["SDL2"]),
         .systemLibrary(
-            name: "CSDL2",
+            name: "SDL2",
             pkgConfig: "sdl2",
             providers: [
                 .brew(["sdl2"]),
@@ -28,7 +28,7 @@ let package = Package(
             ]),
         .testTarget(
             name: "SDLTests",
-            dependencies: ["SDL"]),
+            dependencies: ["SDL2Swift"]),
         ],
     swiftLanguageVersions: [.v5]
 )

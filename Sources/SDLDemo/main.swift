@@ -1,14 +1,14 @@
-import CSDL2
-import SDL
+import SDL2
+import SDL2Swift
 
 print("All Render Drivers:")
-let renderDrivers = SDLRenderer.Driver.all
+let renderDrivers = Renderer.Driver.all
 if renderDrivers.isEmpty == false {
     print("=======")
     for driver in renderDrivers {
         
         do {
-            let info = try SDLRenderer.Info(driver: driver)
+            let info = try Renderer.Info(driver: driver)
             print("Driver:", driver.rawValue)
             print("Name:", info.name)
             print("Options:")
@@ -37,7 +37,7 @@ func main() throws {
     
     let windowSize = (width: 600, height: 480)
     
-    let window = try SDLWindow(title: "SDLDemo",
+    let window = try Window(title: "SDLDemo",
                                frame: (x: .centered, y: .centered, width: windowSize.width, height: windowSize.height),
                                options: [.resizable, .shown])
     
@@ -46,7 +46,7 @@ func main() throws {
     print("Running at \(framesPerSecond) FPS")
     
     // renderer
-    let renderer = try SDLRenderer(window: window)
+    let renderer = try Renderer(window: window)
     
     var frame = 0
     
@@ -79,14 +79,14 @@ func main() throws {
             try renderer.setDrawColor(red: 0xFF, green: 0xFF, blue: 0xFF, alpha: 0xFF)
             try renderer.clear()
             
-            let surface = try SDLSurface(rgb: (0, 0, 0, 0), size: (width: 1, height: 1), depth: 32)
-            let color = SDLColor(
-                format: try SDLPixelFormat(format: .argb8888),
+            let surface = try Surface(rgb: (0, 0, 0, 0), size: (width: 1, height: 1), depth: 32)
+            let color = Color(
+                format: try PixelFormat(format: .argb8888),
                 red: 25, green: 50, blue: .max, alpha: .max / 2
             )
             try surface.fill(color: color)
-            let surfaceTexture = try SDLTexture(renderer: renderer, surface: surface)
-            try surfaceTexture.setBlendMode([.alpha])
+            let surfaceTexture = try Texture(renderer: renderer, surface: surface)
+            try surfaceTexture.setBlendMode([BlendMode.alpha])
             try renderer.copy(surfaceTexture, destination: SDL_Rect(x: 100, y: 100, w: 200, h: 200))
             
             // render to screen

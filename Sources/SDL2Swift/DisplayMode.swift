@@ -5,10 +5,10 @@
 //  Created by Alsey Coleman Miller on 10/19/18.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Display Mode
-public struct SDLDisplayMode {
+public struct DisplayMode {
     
     @usableFromInline
     internal let internalValue: SDL_DisplayMode
@@ -18,8 +18,8 @@ public struct SDLDisplayMode {
         self.internalValue = internalValue
     }
     
-    public var format: SDLPixelFormat.Format {
-        return SDLPixelFormat.Format(rawValue: internalValue.format)
+    public var format: PixelFormat.Format {
+        return PixelFormat.Format(rawValue: internalValue.format)
     }
     
     /// Width, in screen coordinates
@@ -45,10 +45,10 @@ public struct SDLDisplayMode {
     }
 }
 
-public extension SDLDisplayMode {
+public extension DisplayMode {
     
     /// Fill in information about a specific display mode.
-    init(display: SDLVideoDisplay, index: SDLDisplayMode.Index) throws {
+    init(display: SDLVideoDisplay, index: DisplayMode.Index) throws {
         
         var internalValue = SDL_DisplayMode()
         try SDL_GetDisplayMode(Int32(display.rawValue), Int32(index.rawValue), &internalValue).sdlThrow(type: type(of: self))
@@ -56,7 +56,7 @@ public extension SDLDisplayMode {
     }
 }
 
-public extension SDLDisplayMode {
+public extension DisplayMode {
     
     struct Index: IndexRepresentable {
         

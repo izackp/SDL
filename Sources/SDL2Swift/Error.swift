@@ -5,7 +5,7 @@
 //  Created by Alsey Coleman Miller on 10/19/18.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Error
 public struct SDLError: Error {

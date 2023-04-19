@@ -5,10 +5,10 @@
 //  Created by Alsey Coleman Miller on 6/6/17.
 //
 
-import CSDL2
+import SDL2
 
 /// SDL Renderer
-public final class SDLRenderer {
+public final class Renderer {
     
     // MARK: - Properties
     
@@ -21,9 +21,9 @@ public final class SDLRenderer {
     }
     
     /// Create a 2D rendering context for a window.
-    public init(window: SDLWindow,
-                driver: SDLRenderer.Driver = .default,
-                options: BitMaskOptionSet<SDLRenderer.Option> = []) throws {
+    public init(window: Window,
+                driver: Renderer.Driver = .default,
+                options: BitMaskOptionSet<Renderer.Option> = []) throws {
         
         let internalPointer = SDL_CreateRenderer(window.internalPointer, Int32(driver.rawValue), options.rawValue)
         self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
@@ -49,29 +49,31 @@ public final class SDLRenderer {
     }
     
     /// Current rendering target texture.
-    public private(set) var target: SDLTexture?
+    public private(set) var target: Texture?
     
     /// Set a texture as the current rendering target.
-    public func setTarget(_ newValue: SDLTexture?) throws {
+    public func setTarget(_ newValue: Texture?) throws -> Texture? {
         
-        try SDL_SetRenderTarget(internalPointer, target?.internalPointer).sdlThrow(type: type(of: self))
+        try SDL_SetRenderTarget(internalPointer, newValue?.internalPointer).sdlThrow(type: type(of: self))
         
         // hold reference
+        let result = self.target
         self.target = newValue
+        return result
     }
     
     /// The blend mode used for drawing operations (Fill and Line).
-    public func drawBlendMode() throws -> BitMaskOptionSet<SDLBlendMode> {
+    public func drawBlendMode() throws -> BitMaskOptionSet<BlendMode> {
         
         var value = SDL_BlendMode(0)
         SDL_GetRenderDrawBlendMode(internalPointer, &value)
-        return BitMaskOptionSet<SDLBlendMode>(rawValue: value.rawValue)
+        return BitMaskOptionSet<BlendMode>(rawValue: value.rawValue)
     }
     
     /// Set the blend mode used for drawing operations (Fill and Line).
     ///
     /// - Note: If the blend mode is not supported, the closest supported mode is chosen.
-    public func setDrawBlendMode(_ newValue: BitMaskOptionSet<SDLBlendMode>) throws {
+    public func setDrawBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
         
         try SDL_SetRenderDrawBlendMode(internalPointer, SDL_BlendMode(newValue.rawValue)).sdlThrow(type: type(of: self))
     }
@@ -80,6 +82,25 @@ public final class SDLRenderer {
     public func setLogicalSize(width: Int32, height: Int32) throws {
         
         try SDL_RenderSetLogicalSize(internalPointer, width, height).sdlThrow(type: type(of: self))
+    }
+    
+    public func setClipRect(_ rect:SDL_Rect?) throws {
+        guard var copy = rect else {
+            let ptr:UnsafePointer<SDL_Rect>? = nil
+            try SDL_RenderSetClipRect(internalPointer, ptr).sdlThrow(type: type(of: self))
+            return
+        }
+        try SDL_RenderSetClipRect(internalPointer, &copy).sdlThrow(type: type(of: self))
+    }
+    
+    public func getClipRect() -> SDL_Rect {
+        var rect = SDL_Rect()
+        SDL_RenderGetClipRect(internalPointer, &rect)
+        return rect
+    }
+    
+    public func isClipEnabled() -> Bool {
+        return SDL_RenderIsClipEnabled(internalPointer) == SDL_TRUE
     }
     
     // MARK: - Methods
@@ -98,36 +119,36 @@ public final class SDLRenderer {
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, source: SDL_Rect, destination: SDL_Rect) throws {
+    public func copy(_ texture: Texture, source: SDL_Rect, destination: SDL_Rect) throws {
         var s = source
         var d = destination
         try SDL_RenderCopy(internalPointer, texture.internalPointer, &s, &d).sdlThrow(type: type(of: self))
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, source s: inout SDL_Rect, destination d: inout SDL_Rect) throws {
+    public func copy(_ texture: Texture, source s: inout SDL_Rect, destination d: inout SDL_Rect) throws {
         try SDL_RenderCopy(internalPointer, texture.internalPointer, &s, &d).sdlThrow(type: type(of: self))
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, source: SDL_Rect) throws {
+    public func copy(_ texture: Texture, source: SDL_Rect) throws {
         var s = source
         try SDL_RenderCopy(internalPointer, texture.internalPointer, &s, nil).sdlThrow(type: type(of: self))
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, source s: inout SDL_Rect) throws {
+    public func copy(_ texture: Texture, source s: inout SDL_Rect) throws {
         try SDL_RenderCopy(internalPointer, texture.internalPointer, &s, nil).sdlThrow(type: type(of: self))
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, destination: SDL_Rect) throws {
+    public func copy(_ texture: Texture, destination: SDL_Rect) throws {
         var d = destination
         try SDL_RenderCopy(internalPointer, texture.internalPointer, nil, &d).sdlThrow(type: type(of: self))
     }
     
     /// Copy a portion of the texture to the current rendering target.
-    public func copy(_ texture: SDLTexture, destination d: inout SDL_Rect) throws {
+    public func copy(_ texture: Texture, destination d: inout SDL_Rect) throws {
         try SDL_RenderCopy(internalPointer, texture.internalPointer, nil, &d).sdlThrow(type: type(of: self))
     }
     
@@ -143,11 +164,15 @@ public final class SDLRenderer {
         
         try SDL_RenderFillRect(internalPointer, rectPointer).sdlThrow(type: type(of: self))
     }
+    
+    public func drawPoint(x:Int32, y:Int32) throws {
+        try SDL_RenderDrawPoint(internalPointer, x, y).sdlThrow(type: type(of: self))
+    }
 }
 
 // MARK: - Supporting Types
 
-public extension SDLRenderer {
+public extension Renderer {
     
     /// An enumeration of flags used when creating a rendering context.
     enum Option: UInt32, BitMaskOption {
@@ -167,7 +192,7 @@ public extension SDLRenderer {
     
 }
 
-public extension SDLRenderer {
+public extension Renderer {
     
     /// Information on the capabilities of a render driver or context.
     struct Info {
@@ -176,10 +201,10 @@ public extension SDLRenderer {
         public let name: String
         
         /// Supported options.
-        public let options: BitMaskOptionSet<SDLRenderer.Option>
+        public let options: BitMaskOptionSet<Renderer.Option>
         
         /// The number of available texture formats.
-        public let formats: [SDLPixelFormat.Format]
+        public let formats: [PixelFormat.Format]
         
         /// The maximimum texture size.
         public let maximumSize: (width: Int, height: Int)
@@ -196,7 +221,7 @@ public extension SDLRenderer {
         internal init(_ info: SDL_RendererInfo) {
             
             self.name = String(cString: info.name)
-            self.options = BitMaskOptionSet<SDLRenderer.Option>(rawValue: info.flags)
+            self.options = BitMaskOptionSet<Renderer.Option>(rawValue: info.flags)
             self.maximumSize = (Int(info.max_texture_width), Int(info.max_texture_height))
             
             // copy formats array
@@ -218,12 +243,12 @@ public extension SDLRenderer {
                            info.texture_formats.14,
                            info.texture_formats.15]
             
-            self.formats = formats.prefix(formatsCount).map { SDLPixelFormat.Format(rawValue: $0) }
+            self.formats = formats.prefix(formatsCount).map { PixelFormat.Format(rawValue: $0) }
         }
     }
 }
 
-public extension SDLRenderer {
+public extension Renderer {
     
     struct Driver: IndexRepresentable {
         
