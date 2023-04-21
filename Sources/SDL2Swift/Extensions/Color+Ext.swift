@@ -5,8 +5,6 @@
 //  Created by Isaac Paul on 4/13/22.
 //
 
-import Foundation
-
 extension Color {
     static var white = Color.init(rawValue: 0xFFFFFFFF)
     static var idk = Color.init(rawValue: 0x9999FFFF)

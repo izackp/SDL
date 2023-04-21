@@ -80,11 +80,11 @@ internal extension SDLError {
     }
 }
 
-internal extension CInt {
+extension CInt {
     
     /// Throws for error codes.
     @inline(__always)
-    func sdlThrow(file: String = #file,
+    public func sdlThrow(file: String = #file,
                   type: Any,
                   function: String = #function,
                   line: UInt = #line) throws {
@@ -100,11 +100,11 @@ internal extension CInt {
     }
 }
 
-internal extension Optional {
+extension Optional {
     
     /// Unwraps optional value, throwing error if nil.
     @inline(__always)
-    func sdlThrow(file: String = #file,
+    public func sdlThrow(file: String = #file,
                   type: Any,
                   function: String = #function,
                   line: UInt = #line) throws -> Wrapped {

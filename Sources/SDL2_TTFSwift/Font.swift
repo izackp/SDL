@@ -5,8 +5,22 @@
 //  Created by Isaac Paul on 6/24/22.
 //
 
-import SDL2_ttf
-import SDL2
+import SDL2_TTF
+import SDL2Swift
+
+enum TTFError: Error {
+    case convertToUInt32(char:Character)
+}
+
+extension TTFError {
+    public var errorDescription: String? {
+        get {
+            switch self {
+            case .convertToUInt32(let char): return "Can't convert \(char) to UInt32"
+            }
+        }
+    }
+}
 
 extension Bool {
     func toSDLBool() -> SDL_bool {
@@ -18,11 +32,11 @@ extension Bool {
 }
 
 extension String {
-    internal func toSurface(_ block:(_ cStr:UnsafePointer<CChar>) -> (UnsafeMutablePointer<SDL_Surface>?)) throws -> SDLSurface {
+    internal func toSurface(_ block:(_ cStr:UnsafePointer<CChar>) -> (UnsafeMutablePointer<SDL_Surface>?)) throws -> Surface {
         try self.withCString { (cStr:UnsafePointer<CChar>) in
             let result = block(cStr)
             let surface = try result.sdlThrow(type: type(of: self))
-            return SDLSurface(ptr: surface)
+            return Surface(ptr: surface)
         }
     }
 }
@@ -35,15 +49,15 @@ public struct MeasureResult {
 extension Character {
     internal func toUInt32() throws -> UInt32 {
         let scaler = self.unicodeScalars.first?.value
-        guard let ch = scaler else { throw GenericError("Can't convert \(self) to UInt32")}
+        guard let ch = scaler else { throw TTFError.convertToUInt32(char: self)}
         return ch
     }
     
-    internal func toSurface(_ block:(_ ch:UInt32) -> (UnsafeMutablePointer<SDL_Surface>?)) throws -> SDLSurface {
+    internal func toSurface(_ block:(_ ch:UInt32) -> (UnsafeMutablePointer<SDL_Surface>?)) throws -> Surface {
         let ch = try toUInt32()
         let result = block(ch)
         let surface = try result.sdlThrow(type: type(of: self))
-        return SDLSurface(ptr: surface)
+        return Surface(ptr: surface)
     }
 }
 
@@ -64,14 +78,10 @@ public final class Font {
         self.internalPointer = try fontPtr.sdlThrow(type: type(of: self))
     }
     
-    public init(data:Data, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
+    public init(dataPtr:UnsafeRawBufferPointer, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
         
-        var fontPtr:OpaquePointer?
-        data.withUnsafeBytes { (dataPtr:UnsafeRawBufferPointer) in
-            let rwops = SDL_RWFromMem(UnsafeMutableRawPointer(mutating: dataPtr.baseAddress), Int32(dataPtr.count))
-            fontPtr = TTF_OpenFontIndexDPIRW(rwops, 0, Int32(ptSize), CLong(index), hdpi, vdpi)
-        }
-       
+        let rwops = SDL_RWFromMem(UnsafeMutableRawPointer(mutating: dataPtr.baseAddress), Int32(dataPtr.count))
+        var fontPtr:OpaquePointer? = TTF_OpenFontIndexDPIRW(rwops, 0, Int32(ptSize), CLong(index), hdpi, vdpi)
         self.internalPointer = try fontPtr.sdlThrow(type: type(of: self))
     }
     
@@ -194,7 +204,10 @@ public final class Font {
     }
 
     public struct GlyphMetrics {
-        public let frame:Frame<Int> //TODO: remove? Strongly ties this to the game engine..
+        public let x:Int
+        public let y:Int
+        public let width:Int
+        public let height:Int
         public let advance:Int
     }
     
@@ -208,8 +221,7 @@ public final class Font {
         let result = TTF_GlyphMetrics32(internalPointer, ch, &minX, &maxX, &minY, &maxY, &advance)
         try result.sdlThrow(type: type(of: self))
         
-        let frame = Frame<Int>.init(x: Int(minX), y: Int(minY), width: Int(maxX - minX), height: Int(maxY - minY))
-        return GlyphMetrics(frame: frame, advance: Int(advance))
+        return GlyphMetrics(x: Int(minX), y: Int(minY), width: Int(maxX - minX), height: Int(maxY - minY), advance: Int(advance))
     }
     
     public func setFontSize(ptSize:Int, hdpi:Int = 0, vdpi:Int = 0) throws {
@@ -239,73 +251,73 @@ public final class Font {
         return MeasureResult(extent: Int(extent), count: Int(count))
     }
     
-    public func renderSolid(_ str:String, foregroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderSolid(_ str:String, foregroundColor:SDL_Color) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Solid(internalPointer, $0, foregroundColor)
         }
     }
     
-    public func renderSolidWrapped(_ str:String, foregroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> SDLSurface {
+    public func renderSolidWrapped(_ str:String, foregroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Solid_Wrapped(internalPointer, $0, foregroundColor, wrapLengthPxs)
         }
     }
     
-    public func renderLCD(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderLCD(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_LCD(internalPointer, $0, foregroundColor, backgroundColor)
         }
     }
     
-    public func renderLCDWrapped(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> SDLSurface {
+    public func renderLCDWrapped(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_LCD_Wrapped(internalPointer, $0, foregroundColor, backgroundColor, wrapLengthPxs)
         }
     }
     
-    public func renderShaded(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderShaded(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Shaded(internalPointer, $0, foregroundColor, backgroundColor)
         }
     }
     
-    public func renderShadedWrapped(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> SDLSurface {
+    public func renderShadedWrapped(_ str:String, foregroundColor:SDL_Color, backgroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Shaded_Wrapped(internalPointer, $0, foregroundColor, backgroundColor, wrapLengthPxs)
         }
     }
     
-    public func renderBlended(_ str:String, foregroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderBlended(_ str:String, foregroundColor:SDL_Color) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Blended(internalPointer, $0, foregroundColor)
         }
     }
     
-    public func renderBlendedWrapped(_ str:String, foregroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> SDLSurface {
+    public func renderBlendedWrapped(_ str:String, foregroundColor:SDL_Color, wrapLengthPxs:UInt32) throws -> Surface {
         try str.toSurface {
             TTF_RenderUTF8_Blended_Wrapped(internalPointer, $0, foregroundColor, wrapLengthPxs)
         }
     }
     
-    public func renderGlyphShaded(_ c:Character,  foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderGlyphShaded(_ c:Character,  foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> Surface {
         try c.toSurface { ch in
             TTF_RenderGlyph32_Shaded(internalPointer, ch, foregroundColor, backgroundColor)
         }
     }
     
-    public func renderGlyphBlended(_ c:Character,  foregroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderGlyphBlended(_ c:Character,  foregroundColor:SDL_Color) throws -> Surface {
         try c.toSurface { ch in
             TTF_RenderGlyph32_Blended(internalPointer, ch, foregroundColor)
         }
     }
     
-    public func renderGlyphLCD(_ c:Character,  foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderGlyphLCD(_ c:Character,  foregroundColor:SDL_Color, backgroundColor:SDL_Color) throws -> Surface {
         try c.toSurface { ch in
             TTF_RenderGlyph32_LCD(internalPointer, ch, foregroundColor, backgroundColor)
         }
     }
     
-    public func renderGlyphSolid(_ c:Character,  foregroundColor:SDL_Color) throws -> SDLSurface {
+    public func renderGlyphSolid(_ c:Character,  foregroundColor:SDL_Color) throws -> Surface {
         try c.toSurface { ch in
             TTF_RenderGlyph32_Solid(internalPointer, ch, foregroundColor)
         }
@@ -329,6 +341,7 @@ public final class Font {
         return (result == SDL_TRUE)
     }
     
+    //TODO: Make more swifty
     public func setDirection(_ dir:TTF_Direction) throws {
         let result = TTF_SetFontDirection(internalPointer, dir)
         try result.sdlThrow(type: type(of: self))
@@ -341,3 +354,19 @@ public final class Font {
         }
     }
 }
+
+/*
+ Avoiding the foundation library otherwise I would include
+extension Font {
+    public convenience init(data:Data, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
+        
+        var fontPtr:OpaquePointer?
+        data.withUnsafeBytes { (dataPtr:UnsafeRawBufferPointer) in
+            let rwops = SDL_RWFromMem(UnsafeMutableRawPointer(mutating: dataPtr.baseAddress), Int32(dataPtr.count))
+            fontPtr = TTF_OpenFontIndexDPIRW(rwops, 0, Int32(ptSize), CLong(index), hdpi, vdpi)
+        }
+       
+        self.internalPointer = try fontPtr.sdlThrow(type: type(of: self))
+    }
+}
+*/

@@ -5,7 +5,7 @@
 //  Created by Isaac Paul on 6/24/22.
 //
 
-import SDL2_ttf
+import SDL2_TTF
 
 public struct TTF {
     

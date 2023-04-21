@@ -8,6 +8,9 @@ let package = Package(
         .library(
             name: "SDL2Swift",
             targets: ["SDL2Swift"]),
+        .library(
+            name: "SDL2_TTFSwift",
+            targets: ["SDL2_TTFSwift"]),
         .executable(
             name: "SDLDemo",
             targets: ["SDLDemo"]),
@@ -18,7 +21,10 @@ let package = Package(
             dependencies: ["SDL2Swift"]),
         .target(
             name: "SDL2Swift",
-            dependencies: ["SDL2", "SDL2_Image", "SDL2_Mixer", "SDL2_TTF"]),
+            dependencies: ["SDL2"]),
+        .target(
+            name: "SDL2_TTFSwift",
+            dependencies: ["SDL2Swift", "SDL2_TTF"]),
         .systemLibrary(
             name: "SDL2",
             pkgConfig: "sdl2",
