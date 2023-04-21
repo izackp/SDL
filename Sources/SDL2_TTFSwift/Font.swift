@@ -42,6 +42,11 @@ extension String {
 }
 
 public struct MeasureResult {
+    public init(extent: Int, count: Int) {
+        self.extent = extent
+        self.count = count
+    }
+    
     public let extent:Int // Calculated width
     public let count:Int //Num characters
 }
@@ -204,6 +209,14 @@ public final class Font {
     }
 
     public struct GlyphMetrics {
+        public init(x: Int, y: Int, width: Int, height: Int, advance: Int) {
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+            self.advance = advance
+        }
+        
         public let x:Int
         public let y:Int
         public let width:Int
