@@ -7,7 +7,7 @@
 
 import SDL2
 
-extension SDL_Rect {
+public extension SDL_Rect {
     var left : Int32 {
         get { return x }
         set {
