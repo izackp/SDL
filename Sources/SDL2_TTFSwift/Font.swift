@@ -42,8 +42,8 @@ extension String {
 }
 
 public struct MeasureResult {
-    let extent:Int // Calculated width
-    let count:Int //Num characters
+    public let extent:Int // Calculated width
+    public let count:Int //Num characters
 }
 
 extension Character {
