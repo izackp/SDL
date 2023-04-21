@@ -73,21 +73,27 @@ public final class Font {
     internal let internalPointer: OpaquePointer
     
     // MARK: - Initialization
-    public init(file:String, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
+    public init(fontPtr:OpaquePointer) {
+        self.internalPointer = fontPtr
+    }
+    
+    public convenience init(file:String, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
         
         var fontPtr:OpaquePointer? //TODO: does this work if TTF_OpenFont returns null
         file.withCString { (ptr:UnsafePointer<CChar>) in
             fontPtr = TTF_OpenFontIndexDPI(ptr, Int32(ptSize), CLong(index), hdpi, vdpi)
         }
-       
-        self.internalPointer = try fontPtr.sdlThrow(type: type(of: self))
+        
+        let ptr = try fontPtr.sdlThrow(type: type(of: self))
+        self.init(fontPtr:ptr)
     }
     
-    public init(dataPtr:UnsafeRawBufferPointer, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
+    public convenience init(dataPtr:UnsafeRawBufferPointer, ptSize:Int, index:Int = 0, hdpi:UInt32 = 0, vdpi:UInt32 = 0) throws {
         
         let rwops = SDL_RWFromMem(UnsafeMutableRawPointer(mutating: dataPtr.baseAddress), Int32(dataPtr.count))
         var fontPtr:OpaquePointer? = TTF_OpenFontIndexDPIRW(rwops, 0, Int32(ptSize), CLong(index), hdpi, vdpi)
-        self.internalPointer = try fontPtr.sdlThrow(type: type(of: self))
+        let ptr = try fontPtr.sdlThrow(type: type(of: self))
+        self.init(fontPtr:ptr)
     }
     
     deinit {
