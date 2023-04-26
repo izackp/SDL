@@ -139,7 +139,7 @@ public final class Surface {
         SDL_UnlockSurface(internalPointer)
     }
     
-    public func blit(to surface: Surface, source: SDL_Rect? = nil, destination: SDL_Rect? = nil) throws {
+    public func upperBlit(to surface: Surface, source: SDL_Rect? = nil, destination: SDL_Rect? = nil) throws {
         let dest = destination?.allocMutablePointer()
         defer {
             dest?.deallocate()
@@ -168,15 +168,21 @@ public final class Surface {
         }
     }
     
-    public func drawPoint(_ x: Int32, _ y:Int32, _ color: UInt32) throws {
-        //SDL_DrawPoint(internalPointer, x, y, color)
+    public func drawPoint(_ x: Int, _ y:Int, _ color: UInt32) throws {
+        let pitch = self.pitch
+        let bpp = 4
+        try withUnsafeMutableBytes { (ptr:UnsafeMutableRawPointer) in
+            let targetPtr = ptr.advanced(by: y * pitch + x * bpp)
+            targetPtr.storeBytes(of: color, as: UInt32.self)
+        }
+        
     }
     
     public func convertSurface(format: SDL_PixelFormatEnum) throws -> Surface {
         let newPtr = try SDL_ConvertSurfaceFormat(internalPointer, format.rawValue, 0).sdlThrow(type: type(of: self))
         return Surface(ptr: newPtr)
     }
-    
+    /*
     public func blitChecked(_ src:Surface, _ srcRect:SDL_Rect? = nil, _ dstRect:SDL_Rect? = nil) throws {
         //TODO: Kinda ugly
         let result:Int32
@@ -202,5 +208,5 @@ public final class Surface {
             result = SDL_UpperBlit(src.internalPointer, nil, internalPointer, nil)
         }
         try result.sdlThrow(type: type(of: self))
-    }
+    }*/
 }
