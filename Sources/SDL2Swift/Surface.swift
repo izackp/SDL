@@ -176,4 +176,31 @@ public final class Surface {
         let newPtr = try SDL_ConvertSurfaceFormat(internalPointer, format.rawValue, 0).sdlThrow(type: type(of: self))
         return Surface(ptr: newPtr)
     }
+    
+    public func blitChecked(_ src:Surface, _ srcRect:SDL_Rect? = nil, _ dstRect:SDL_Rect? = nil) throws {
+        //TODO: Kinda ugly
+        let result:Int32
+        if let srcRect = srcRect, let dstRect = dstRect {
+            var mutCopy = dstRect
+            result = withUnsafePointer(to: srcRect) { (srcRectPtr:UnsafePointer<SDL_Rect>) in
+                return withUnsafeMutablePointer(to: &mutCopy) { (dstRectPtr:UnsafeMutablePointer<SDL_Rect>) in
+                    return SDL_UpperBlit(src.internalPointer, srcRectPtr, internalPointer, dstRectPtr)
+                }
+            }
+        }
+        else if let srcRect = srcRect {
+            result = withUnsafePointer(to: srcRect) { (srcRectPtr:UnsafePointer<SDL_Rect>) in
+                return SDL_UpperBlit(src.internalPointer, srcRectPtr, internalPointer, nil)
+            }
+        }
+        else if let dstRect = dstRect {
+            var mutCopy = dstRect
+            result = withUnsafeMutablePointer(to: &mutCopy) { (dstRectPtr:UnsafeMutablePointer<SDL_Rect>) in
+                return SDL_UpperBlit(src.internalPointer, nil, internalPointer, dstRectPtr)
+            }
+        } else {
+            result = SDL_UpperBlit(src.internalPointer, nil, internalPointer, nil)
+        }
+        try result.sdlThrow(type: type(of: self))
+    }
 }
