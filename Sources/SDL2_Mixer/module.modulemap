@@ -1,5 +1,5 @@
 module SDL2_Mixer [system] {
     header "shim.h"
-    link "SDL2"
+    link "SDL2_mixer"
     export *
 }
