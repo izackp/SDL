@@ -71,7 +71,8 @@ public final class Renderer {
         
         var value = SDL_BlendMode(0)
         SDL_GetRenderDrawBlendMode(internalPointer, &value)
-        return BitMaskOptionSet<BlendMode>(rawValue: value.rawValue)
+        let idk:UInt32 = UInt32(value.rawValue)
+        return BitMaskOptionSet<BlendMode>(rawValue:idk)
     }
     
     /// Set the blend mode used for drawing operations (Fill and Line).
@@ -79,7 +80,7 @@ public final class Renderer {
     /// - Note: If the blend mode is not supported, the closest supported mode is chosen.
     public func setDrawBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
         
-        try SDL_SetRenderDrawBlendMode(internalPointer, SDL_BlendMode(newValue.rawValue)).sdlThrow(type: type(of: self))
+        try SDL_SetRenderDrawBlendMode(internalPointer, SDL_BlendMode(Int32(newValue.rawValue))).sdlThrow(type: type(of: self))
     }
     
     /// Set a device independent resolution for rendering

@@ -96,13 +96,13 @@ public final class Texture {
         
         var value = SDL_BlendMode(0)
         try SDL_GetTextureBlendMode(internalPointer, &value).sdlThrow(type: type(of: self))
-        return BitMaskOptionSet<BlendMode>(rawValue: value.rawValue)
+        return BitMaskOptionSet<BlendMode>(rawValue: UInt32(value.rawValue))
     }
     
     /// Set the blend mode used for texture copy operations.
     public func setBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
         
-        try SDL_SetTextureBlendMode(internalPointer, SDL_BlendMode(newValue.rawValue)).sdlThrow(type: type(of: self))
+        try SDL_SetTextureBlendMode(internalPointer, SDL_BlendMode(Int32(newValue.rawValue))).sdlThrow(type: type(of: self))
     }
     
     /**

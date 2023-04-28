@@ -179,7 +179,7 @@ public final class Surface {
     }
     
     public func convertSurface(format: SDL_PixelFormatEnum) throws -> Surface {
-        let newPtr = try SDL_ConvertSurfaceFormat(internalPointer, format.rawValue, 0).sdlThrow(type: type(of: self))
+        let newPtr = try SDL_ConvertSurfaceFormat(internalPointer, UInt32(format.rawValue), 0).sdlThrow(type: type(of: self))
         return Surface(ptr: newPtr)
     }
     /*

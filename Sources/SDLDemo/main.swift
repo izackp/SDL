@@ -61,7 +61,7 @@ func main() throws {
         // increment ticker
         frame += 1
         let startTime = SDL_GetTicks()
-        let eventType = SDL_EventType(rawValue: event.type)
+        let eventType = SDL_EventType(rawValue: Int32(event.type))
         
         switch eventType {
         case SDL_QUIT, SDL_APP_TERMINATING:
