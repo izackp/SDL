@@ -101,8 +101,9 @@ public final class Texture {
     
     /// Set the blend mode used for texture copy operations.
     public func setBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
-        
-        try SDL_SetTextureBlendMode(internalPointer, SDL_BlendMode(Int32(newValue.rawValue))).sdlThrow(type: type(of: self))
+        let value = unsafeBitCast(newValue.rawValue, to: SDL_BlendMode.RawValue.self)
+        let blendMode = SDL_BlendMode(value)
+        try SDL_SetTextureBlendMode(internalPointer, blendMode).sdlThrow(type: type(of: self))
     }
     
     /**

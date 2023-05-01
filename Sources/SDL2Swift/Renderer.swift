@@ -80,7 +80,9 @@ public final class Renderer {
     /// - Note: If the blend mode is not supported, the closest supported mode is chosen.
     public func setDrawBlendMode(_ newValue: BitMaskOptionSet<BlendMode>) throws {
         
-        try SDL_SetRenderDrawBlendMode(internalPointer, SDL_BlendMode(Int32(newValue.rawValue))).sdlThrow(type: type(of: self))
+        let value = unsafeBitCast(newValue.rawValue, to: SDL_BlendMode.RawValue.self)
+        let blendMode = SDL_BlendMode(value)
+        try SDL_SetRenderDrawBlendMode(internalPointer, blendMode).sdlThrow(type: type(of: self))
     }
     
     /// Set a device independent resolution for rendering
