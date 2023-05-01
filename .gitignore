@@ -95,3 +95,5 @@ xcuserdata/
 
 ## SwiftPM
 .swiftpm/
+.build/
+.vscode/

@@ -8,7 +8,7 @@
 import SDL2
 
 // An enumeration of blend modes used in `Renderer.copy()` and drawing operations.
-public enum BlendMode: UInt32, BitMaskOption {
+public enum BlendMode: SDL_BlendMode.RawValue, BitMaskOption {
     
     /// No blending
     case none = 0x0
