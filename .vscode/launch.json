@@ -10,7 +10,8 @@
             "program": "${workspaceFolder:SDL}\\.build/debug/SDLDemo",
             "args": [],
             "cwd": "${workspaceFolder:SDL}",
-            "preLaunchTask": "swift: Build Debug SDLDemo"
+            "preLaunchTask": "swift: Build Debug SDLDemo",
+            "console": "internalConsole"
         },
         {
             "type": "lldb",
@@ -22,7 +23,8 @@
             "program": "${workspaceFolder:SDL}\\.build/release/SDLDemo",
             "args": [],
             "cwd": "${workspaceFolder:SDL}",
-            "preLaunchTask": "swift: Build Release SDLDemo"
+            "preLaunchTask": "swift: Build Release SDLDemo",
+            "console": "internalConsole"
         }
     ]
 }
