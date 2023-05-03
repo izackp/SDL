@@ -12,7 +12,7 @@ Swift library for SDL2. Also serves as a minimum example project for running on 
 
 3. Run .downloadBinaries.ps1 **Or:** 
     * Download SDL2 manually.
-    * Copy SDL2.dll and SDL2_ttf.dll files into this folder
+    * Copy SDL2.dll, SDL2_ttf.dll, etc files into this folder
     * Copy the appropiate files into `windows_bin\include` and `windows_bin\lib\x64`
 
 4. Open the project folder in vscode and hitting the Run and debug button should work fine.
@@ -20,5 +20,8 @@ Swift library for SDL2. Also serves as a minimum example project for running on 
 If you wish to run manually without vscode then run:
 
 ```bash
-swift build --product "SDLDemo" -c debug -Xswiftc -I"path_to_\windows_bin\include" -Xlinker -L"path_to_\windows_bin\lib\x64"
+swift build --product "SDLDemo" -c debug -Xswiftc -Iwindows_bin\\include -Xlinker -Lwindows_bin\\lib\\x64
+.\.build\debug\SDLDemo.exe
 ```
+
+We're using `swift build` because `swift run` can't find the directories for some reason.
