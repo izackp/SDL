@@ -14,12 +14,12 @@ This repo also serves as a minimum example project for running on windows. _Note
 
     * Optional: Create a test hello world project to make sure and hit a breakpoint to make sure everything is working
 
-3. Run .downloadBinaries.ps1 **Or:** 
+3. Run `.\downloadBinaries.ps1` **Or:** 
     * Download SDL2 manually.
     * Copy SDL2.dll, SDL2_ttf.dll, etc files into this folder
     * Copy the appropiate files into `windows_bin\include` and `windows_bin\lib\x64`
 
-4. Run .fix_vscode_settings.ps1
+4. Run `.\fix_vscode_settings.ps1`
     * SourceKit needs to be pointed to the SDL directories for intellisense.
 
 5. Open the project folder in vscode and hitting the Run and debug button should work fine.
@@ -31,4 +31,4 @@ swift build --product "SDLDemo" -c debug -Xswiftc -Iwindows_bin\\include -Xlinke
 .\.build\debug\SDLDemo.exe
 ```
 
-We're using `swift build` because `swift run` can't find the directories for some reason.
+We're using `swift build` because `swift run` can't find the SDL directories for some reason.
