@@ -3,15 +3,17 @@
     "lldb.verboseLogging": true,
     "sourcekit-lsp.serverArguments": [
         "-Xcc",
-        "-I${workspaceFolder:Mopix}\\windows_bin\\include",
+        "-I${workspaceFolder:SDL}\\windows_bin\\include",
         "-Xlinker",
-        "-L${workspaceFolder:Mopix}\\windows_bin\\lib\\x64"
+        "-L${workspaceFolder:SDL}\\windows_bin\\lib\\x64"
     ],
     "swift.buildArguments": [
         "-Xcc",
-        "-I${workspaceFolder:Mopix}\\windows_bin\\include",
+        "-I${workspaceFolder:SDL}\\windows_bin\\include",
         "-Xlinker",
-        "-L${workspaceFolder:Mopix}\\windows_bin\\lib\\x64"
+        "-L${workspaceFolder:SDL}\\windows_bin\\lib\\x64",
+        "-Xlinker",
+        "-debug:dwarf"
     ],
     "swift.diagnostics": true
 }
