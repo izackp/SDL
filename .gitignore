@@ -96,4 +96,6 @@ xcuserdata/
 ## SwiftPM
 .swiftpm/
 .build/
-.vscode/
+SDL*.dll
+docs
+windows_bin

@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug SDLDemo",
+            "program": "${workspaceFolder:SDL}\\.build/debug/SDLDemo",
+            "args": [],
+            "cwd": "${workspaceFolder:SDL}",
+            "preLaunchTask": "swift: Build Debug SDLDemo"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release SDLDemo",
+            "program": "${workspaceFolder:SDL}\\.build/release/SDLDemo",
+            "args": [],
+            "cwd": "${workspaceFolder:SDL}",
+            "preLaunchTask": "swift: Build Release SDLDemo"
+        }
+    ]
+}
