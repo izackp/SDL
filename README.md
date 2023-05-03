@@ -1,5 +1,9 @@
 # SDL
-Swift library for SDL2. Also serves as a minimum example project for running on windows.
+Swift library for SDL2. 
+
+C libraries use their respective names for their module names `import SDL2_TTF`. The swifty wrappers append 'Swift' onto the module name `import SDL2_TTFSwift`. Not sure what's the cleanest solution tbh. As a matter of fact, it's likely that I'll refactor the swifty wrappers frequently.
+
+This repo also serves as a minimum example project for running on windows. _Note: I have yet to test SDL2_TTFSwift on windows_
 
 
 ### Running on Windows
