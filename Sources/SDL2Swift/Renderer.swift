@@ -173,6 +173,16 @@ public final class Renderer {
     public func drawPoint(x:Int32, y:Int32) throws {
         try SDL_RenderDrawPoint(internalPointer, x, y).sdlThrow(type: type(of: self))
     }
+    
+    public func setVSync(value:Bool)  throws {
+        let targetV:Int32
+        if (value) {
+            targetV = 1
+        } else {
+            targetV = 0
+        }
+        try SDL_RenderSetVSync(internalPointer, targetV).sdlThrow(type: type(of: self))
+    }
 }
 
 // MARK: - Supporting Types
