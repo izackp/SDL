@@ -13,11 +13,6 @@ extension SDL_Rect {
         result.pointee = self
         return result
     }
-    
-    //TODO: this works... but not safe. Tried the immutable varient and get varying results once out of scope of calling function
-    mutating func toMutPointer() -> UnsafeMutablePointer<SDL_Rect> {
-        return withUnsafeMutablePointer(to: &self, { $0 })
-    }
 }
 
 /// SDL Surface

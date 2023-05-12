@@ -157,6 +157,29 @@ public final class Renderer {
         try SDL_RenderCopy(internalPointer, texture.internalPointer, nil, &d).sdlThrow(type: type(of: self))
     }
     
+    /// Copy a portion of the texture to the current rendering target.
+    public func copyF(_ texture: Texture, _ source: SDL_Rect, _ destination: SDL_FRect) throws {
+        var s = source
+        var d = destination
+        try SDL_RenderCopyF(internalPointer, texture.internalPointer, &s, &d).sdlThrow(type: type(of: self))
+    }
+    
+    public enum RendererFlip: SDL_RendererFlip.RawValue, BitMaskOption {
+        
+        case none = 0x00000000 //Always true
+        case horizontal = 0x00000001
+        case vertical = 0x00000002
+    }
+    
+    /// Copy a portion of the texture to the current rendering target.
+    public func copyEx(_ texture: Texture, _ source: SDL_Rect, _ destination: SDL_Rect, _ angle:Double = 0, _ center:SDL_Point = SDL_Point(x: 0, y: 0), _ flip:BitMaskOptionSet<RendererFlip> = [.none]) throws {
+        var s = source
+        var d = destination
+        var c = center
+        let sdlFlip = SDL_RendererFlip(flip.rawValue)
+        try SDL_RenderCopyEx(internalPointer, texture.internalPointer, &s, &d, angle, &c, sdlFlip).sdlThrow(type: type(of: self))
+    }
+    
     /// Fill a rectangle on the current rendering target with the drawing color.
     public func fill(rect: SDL_Rect? = nil) throws {
         
