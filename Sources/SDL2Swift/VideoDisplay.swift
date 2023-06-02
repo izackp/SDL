@@ -56,7 +56,7 @@ public extension SDLVideoDisplay {
         
         // make sure value is valid
         try count.sdlThrow(type: type(of: self))
-        
+
         let set = CountableSet<DisplayMode.Index>(count: Int(count))
         
         return try set.map { try DisplayMode(display: self, index: $0) }

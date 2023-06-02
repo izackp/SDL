@@ -31,7 +31,7 @@ func main() throws {
     
     var isRunning = true
     
-    try SDL.initialize(subSystems: [.video])
+    try SDL.initialize([.video])
     
     defer { SDL.quit() }
     
@@ -61,7 +61,7 @@ func main() throws {
         // increment ticker
         frame += 1
         let startTime = SDL_GetTicks()
-        let eventType = SDL_EventType(rawValue: Int32(event.type))
+        let eventType = SDL_EventType(rawValue: unsafeBitCast(event.type, to: SDL_EventType.RawValue.self))
         
         switch eventType {
         case SDL_QUIT, SDL_APP_TERMINATING:

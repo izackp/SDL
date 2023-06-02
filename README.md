@@ -5,6 +5,8 @@ C libraries use their respective names for their module names `import SDL2_TTF`.
 
 This repo also serves as a minimum example project for running on windows. _Note: I have yet to test SDL2_TTFSwift on windows_
 
+Note: I'm going to some refactor IndexRepresentable stuff soon. As well as see if I can add attributes to enums on the mainline SDL2 source which will result in some breaking changes. 
+
 
 ### Running on Windows
 

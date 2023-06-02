@@ -98,6 +98,19 @@ extension CInt {
             throw error
         }
     }
+    
+    @inline(__always)
+    public func sdlThrow(file: String = #file,
+                  type: Any,
+                  msg: String,
+                  function: String = #function,
+                  line: UInt = #line) throws {
+        
+        guard self >= 0 else {
+            let debugInformation = SDLError.DebugInformation(file: file, type: type, function: function, line: line)
+            throw SDLError(errorMessage: msg, debugInformation: debugInformation)
+        }
+    }
 }
 
 extension Optional {
