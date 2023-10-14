@@ -140,6 +140,14 @@ public final class Window {
             
         }
     }
+    
+    ///Get the size of a window's client area.
+    public func getWindowSize() throws -> (Int, Int) {
+        var width:Int32 = 0
+        var height:Int32 = 0
+        SDL_GetWindowSize(internalPointer, &width, &height)
+        return (Int(width), Int(height))
+    }
 }
 
 // MARK: - Supporting Types

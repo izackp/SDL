@@ -7,6 +7,38 @@
 
 import SDL2
 
+public enum RendererFlags: UInt32, BitMaskOption {
+    /**< The renderer is a software fallback */
+    case software = 0x00000001
+    /**< The renderer uses hardware acceleration */
+    case accelerated = 0x00000002
+    /**< Present is synchronized with the refresh rate */
+    case presentVSync = 0x00000004
+    /**< The renderer supports rendering to texture */
+    case targetTexture = 0x00000008
+}
+
+public final class RendererInfo {
+    // MARK: - Properties
+    public let name:String
+    public let flags:RendererFlags
+    public var textureFormats:[SDL_PixelFormatEnum] //TODO:
+    public let maxTextureWidth:Int
+    public let maxTextureHeight:Int
+    
+    init(_ cPOD:SDL_RendererInfo) {
+        name = String(cString: cPOD.name)
+        flags = RendererFlags(rawValue: cPOD.flags)!
+        let numTextureFormats = Int(cPOD.num_texture_formats)
+        let tpl = cPOD.texture_formats
+        textureFormats = [tpl.0, tpl.1, tpl.2, tpl.3, tpl.4, tpl.5, tpl.6, tpl.7, tpl.8, tpl.9, tpl.10, tpl.11, tpl.12, tpl.13, tpl.14, tpl.15].prefix(numTextureFormats).map({
+            SDL_PixelFormatEnum(UInt32($0))
+        })
+        maxTextureWidth = Int(cPOD.max_texture_width)
+        maxTextureHeight = Int(cPOD.max_texture_height)
+    }
+}
+
 /// SDL Renderer
 public final class Renderer {
     
@@ -197,7 +229,7 @@ public final class Renderer {
         try SDL_RenderDrawPoint(internalPointer, x, y).sdlThrow(type: type(of: self))
     }
     
-    public func setVSync(value:Bool)  throws {
+    public func setVSync(value:Bool) throws {
         let targetV:Int32
         if (value) {
             targetV = 1
@@ -206,6 +238,45 @@ public final class Renderer {
         }
         try SDL_RenderSetVSync(internalPointer, targetV).sdlThrow(type: type(of: self))
     }
+    
+    ///Read pixels from the current rendering target to an array of pixels.
+    public func readPixels(rect: SDL_Rect? = nil, pitch: Int, format: SDL_PixelFormatEnum) throws -> [UInt8] {
+        let rectPointer: UnsafePointer<SDL_Rect>?
+        let height:Int
+        if let rect = rect {
+            rectPointer = withUnsafePointer(to: rect) { $0 } //TODO: uhh not exactly safe
+            height = Int(rect.h)
+        } else {
+            rectPointer = nil
+            //let info = getInfo()
+            let (outputH, _) = try getOutputSize()
+            height = outputH
+        }
+        
+        var buffer:[UInt8] = Array(repeating: 0, count: pitch*height)
+        try buffer.withUnsafeMutableBufferPointer { (ptr:inout UnsafeMutableBufferPointer<UInt8>) in
+            try SDL_RenderReadPixels(internalPointer, rectPointer, Uint32(format.rawValue), ptr.baseAddress, Int32(pitch)) .sdlThrow(type: type(of: self))
+        }
+        return buffer
+    }
+    
+    public func getInfo() throws -> RendererInfo {
+        var info = SDL_RendererInfo()
+        let errorNum = withUnsafeMutablePointer(to: &info) { ptr in
+            return SDL_GetRendererInfo(internalPointer, ptr)
+        }
+        try errorNum.sdlThrow(type: type(of: self))
+        let result = RendererInfo(info)
+        return result
+    }
+    
+    public func getOutputSize() throws -> (Int, Int) {
+        var width:Int32 = 0
+        var height:Int32 = 0
+        SDL_GetRendererOutputSize(internalPointer, &width, &height)
+        return (Int(width), Int(height))
+    }
+
 }
 
 // MARK: - Supporting Types
