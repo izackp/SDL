@@ -50,6 +50,29 @@ public final class PixelFormat {
         
         try SDL_SetPixelFormatPalette(internalPointer, palette.internalPointer).sdlThrow(type: type(of: self))
     }
+    
+    //TODO:
+    //public var palette { get { internalPointer.pointee.palette } }
+    
+    public var bitsPerPixel:UInt8 { get { UInt8(internalPointer.pointee.BitsPerPixel) } }
+    public var bytesPerPixel:UInt8 { get { UInt8(internalPointer.pointee.BytesPerPixel) } }
+    public var padding:(UInt8, UInt8) { get {
+        let idk = internalPointer.pointee.padding
+        return (UInt8(idk.0), UInt8(idk.1))
+    } }
+    public var rMask:UInt32 { get { UInt32(internalPointer.pointee.Rmask) } }
+    public var gMask:UInt32 { get { UInt32(internalPointer.pointee.Gmask) } }
+    public var bMask:UInt32 { get { UInt32(internalPointer.pointee.Bmask) } }
+    public var aMask:UInt32 { get { UInt32(internalPointer.pointee.Amask) } }
+    public var rLoss:UInt8 { get { UInt8(internalPointer.pointee.Rloss) } }
+    public var gLoss:UInt8 { get { UInt8(internalPointer.pointee.Gloss) } }
+    public var bLoss:UInt8 { get { UInt8(internalPointer.pointee.Bloss) } }
+    public var aLoss:UInt8 { get { UInt8(internalPointer.pointee.Aloss) } }
+    public var rShift:UInt8 { get { UInt8(internalPointer.pointee.Rshift) } }
+    public var gShift:UInt8 { get { UInt8(internalPointer.pointee.Gshift) } }
+    public var bShift:UInt8 { get { UInt8(internalPointer.pointee.Bshift) } }
+    public var aShift:UInt8 { get { UInt8(internalPointer.pointee.Ashift) } }
+    
 }
 
 // MARK: - Supporting Types
