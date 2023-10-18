@@ -66,7 +66,7 @@ public extension PixelFormat {
             self.rawValue = rawValue
         }
         
-        func toPixelFormat() throws -> PixelFormat {
+        public func toPixelFormat() throws -> PixelFormat {
             return try PixelFormat(format: rawValue)
         }
     }
