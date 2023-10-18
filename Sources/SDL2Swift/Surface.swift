@@ -42,6 +42,14 @@ public final class Surface {
         _skipFree = false
     }
     
+    public init(width: Int, height: Int, format:PixelFormat) throws {
+        let depth = format.bitsPerPixel
+        let internalPointer = SDL_CreateRGBSurfaceWithFormat(0, CInt(width), CInt(height), CInt(depth), format.format.rawValue)
+        
+        self.internalPointer = try internalPointer.sdlThrow(type: type(of: self))
+        _skipFree = false
+    }
+    
     // Get the SDL surface associated with the window.
     ///
     /// A new surface will be created with the optimal format for the window,

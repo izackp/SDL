@@ -240,24 +240,33 @@ public final class Renderer {
     }
     
     ///Read pixels from the current rendering target to an array of pixels.
-    public func readPixels(rect: SDL_Rect? = nil, pitch: Int, format: SDL_PixelFormatEnum) throws -> [UInt8] {
-        let rectPointer: UnsafePointer<SDL_Rect>?
-        let height:Int
-        if let rect = rect {
-            rectPointer = withUnsafePointer(to: rect) { $0 } //TODO: uhh not exactly safe
-            height = Int(rect.h)
-        } else {
-            rectPointer = nil
-            //let info = getInfo()
-            let (outputH, _) = try getOutputSize()
-            height = outputH
+    public func readPixels(format: PixelFormat) throws -> Surface {
+        let (outputW, outputH) = try getOutputSize()
+        /*
+        let pitch = outputW * Int(format.bytesPerPixel)
+        //TODO: Possible to get pitch and format from renderer directly?
+        let blankSurface = try Surface(width: outputW, height: outputH, format: format)
+        try blankSurface.withUnsafeMutableBytes { (ptr:UnsafeMutableRawPointer) in
+            try SDL_RenderReadPixels(internalPointer, nil, Uint32(format.format.rawValue), ptr, Int32(pitch)) .sdlThrow(type: type(of: self))
         }
-        
-        var buffer:[UInt8] = Array(repeating: 0, count: pitch*height)
-        try buffer.withUnsafeMutableBufferPointer { (ptr:inout UnsafeMutableBufferPointer<UInt8>) in
-            try SDL_RenderReadPixels(internalPointer, rectPointer, Uint32(format.rawValue), ptr.baseAddress, Int32(pitch)) .sdlThrow(type: type(of: self))
+        let surface = try Surface(buffer, format.internalPointer.pointee, outputW, outputH)*/
+        return try readPixels(rect: SDL_Rect(x: 0, y: 0, w: Int32(outputW), h: Int32(outputH)), format: format)
+    }
+    
+    ///Read pixels from the current rendering target to an array of pixels.
+    public func readPixels(rect: SDL_Rect, format: PixelFormat) throws -> Surface {
+        let height = Int(rect.h)
+        let width = Int(rect.w)
+        let pitch = width * Int(format.bytesPerPixel)
+        let blankSurface = try Surface(width: width, height: height, format: format)
+        try withUnsafePointer(to: rect) { (rectPtr:UnsafePointer<SDL_Rect>) in
+            try blankSurface.withUnsafeMutableBytes { (ptr:UnsafeMutableRawPointer) in
+                let pitch32 = Int32(pitch)
+                try SDL_RenderReadPixels(internalPointer, rectPtr, Uint32(format.format.rawValue), ptr, pitch32).sdlThrow(type: type(of: self))
+            }
         }
-        return buffer
+        return blankSurface
+        //let surface = try Surface(buffer, format.internalPointer.pointee, Int(rect.w), height)
     }
     
     public func getInfo() throws -> RendererInfo {
