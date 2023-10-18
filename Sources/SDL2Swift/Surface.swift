@@ -67,6 +67,20 @@ public final class Surface {
         _skipFree = false
     }
     
+    public init(_ data:[UInt8], _ format:SDL_PixelFormat, _ width:Int, _ height:Int, skipFree:Bool = false) throws {
+        let widthC = Int32(width)
+        let heightC = Int32(height)
+        let bpp = Int32(format.BitsPerPixel)
+        let pitch = widthC*Int32(format.BytesPerPixel)
+        var datacopy = data //TODO: fix to avoid copy
+        let surfacePtr = datacopy.withUnsafeMutableBytes { (ptr:UnsafeMutableRawBufferPointer) in
+            SDL_CreateRGBSurfaceWithFormatFrom(ptr.baseAddress, widthC, heightC, bpp, pitch, format.format)
+            
+        }
+        self.internalPointer = try surfacePtr.sdlThrow(type: type(of: self))
+        _skipFree = skipFree
+    }
+    
     // MARK: - Accessors
     
     public var width: Int {
