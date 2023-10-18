@@ -29,6 +29,12 @@ public final class PixelFormat {
         self.internalPointer = try internalFormat.sdlThrow(type: type(of: self))
     }
     
+    public init(format: UInt32) throws {
+        
+        let internalFormat = SDL_AllocFormat(format)
+        self.internalPointer = try internalFormat.sdlThrow(type: type(of: self))
+    }
+    
     // MARK: - Accessors
     
     /// Pixel format
@@ -58,6 +64,10 @@ public extension PixelFormat {
         public init(rawValue: UInt32) {
             
             self.rawValue = rawValue
+        }
+        
+        func toPixelFormat() throws -> PixelFormat {
+            return try PixelFormat(format: rawValue)
         }
     }
 }

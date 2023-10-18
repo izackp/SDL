@@ -75,7 +75,6 @@ public final class Surface {
         var datacopy = data //TODO: fix to avoid copy
         let surfacePtr = datacopy.withUnsafeMutableBytes { (ptr:UnsafeMutableRawBufferPointer) in
             SDL_CreateRGBSurfaceWithFormatFrom(ptr.baseAddress, widthC, heightC, bpp, pitch, format.format)
-            
         }
         self.internalPointer = try surfacePtr.sdlThrow(type: type(of: self))
         _skipFree = skipFree
